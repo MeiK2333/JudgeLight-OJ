@@ -1,0 +1,13 @@
+{
+    "datafile": [
+        {
+            "infile": "data1.in",
+            "outfile": "data1.out"
+        },
+        {
+            "infile": "data2.in",
+            "outfile": "data2.out"
+        }
+    ],
+    "judge_type": "standard"
+}
