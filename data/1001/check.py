@@ -36,10 +36,8 @@ def get_run_error(run_json):
 
 
 def check_one(out_data, run_data):
-    if out_data.rstrip() == run_data.rstrip():  # 忽略末尾空白符
+    if out_data.rstrip().lower() == run_data.rstrip().lower():  # 忽略末尾空白符
         return 'Accepted'
-    if out_data.split() == run_data.split():  # 如果除了空白符之外全相同
-        return 'Presentation Error'
     return 'Wrong Answer'
 
 
