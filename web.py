@@ -17,7 +17,10 @@ def index():
     return '''<form method='post'>
 run_id: <input name='run_id'><br>
 pid: <input name='pid'><br>
-code: <input name='code'><br>
+time_limit: <input name='time_limit'><br>
+memory_limit: <input name='memory_limit'><br>
+language: <input name='language'><br>
+code: <textarea name='code'></textarea><br>
 <button type=submit>submit</button>
 </form>'''
 
@@ -26,9 +29,10 @@ code: <input name='code'><br>
 def add():
     run_id = request.form.get('run_id')
     pid = request.form.get('pid')
+    language = request.form.get('language')
     code = request.form.get('code')
     data = request.form
-    if run_id and pid and code:
+    if run_id and pid and code and language:
         if os.path.exists(os.path.join(Config.workDir, run_id)):
             return jsonify({'status': 'error', 'msg': run_id + ' 文件夹重名'})
         os.mkdir(os.path.join(Config.workDir, run_id))
@@ -36,7 +40,7 @@ def add():
         result = {
             'args': data,
             'data': [],
-            'end': False
+            'result': ''
         }
         rdc.hset(Config.redisResult, run_id, json.dumps(result))
         return jsonify({'status': 'success', 'data': data})
@@ -75,19 +79,20 @@ def show(run_id):
 @app.route('/<run_id>/', methods=['POST'])
 def update(run_id):
     msg = request.form.get('msg')
-    end = request.form.get('end')
-    result = request.form.get('result')
+    post_data = request.form
     data = rdc.hget(Config.redisResult, run_id)
     if msg and data:
         data = json.loads(data)
-        data['data'].append({
-            'time': int(time.time()),
-            'msg': msg
-        })
-        if end:
-            data['end'] = True
-        if result:
-            data['result'] = result
+        if not post_data.get('json'):
+            data['data'].append({
+                'time': int(time.time()),
+                'msg': msg
+            })
+            data.update(post_data)
+        else:
+            name = post_data.get('name')
+            json_data = json.loads(post_data.get(name))
+            data[name] = json_data
         rdc.hset(Config.redisResult, run_id, json.dumps(data))
         return jsonify({'status': 'success', 'data': data})
     if msg is None:
@@ -101,7 +106,7 @@ def pop(run_id):
     data = rdc.hget(Config.redisResult, run_id)
     if data:
         data = json.loads(data)
-        if data['end'] is True:
+        if data['result']:
             rdc.hdel(Config.redisResult, run_id)
             shutil.rmtree(os.path.join(Config.workDir, run_id))
             return jsonify({'status': 'success', 'data': data})

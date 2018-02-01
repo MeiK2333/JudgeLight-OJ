@@ -1,6 +1,4 @@
 # coding=utf-8
-import os
-import time
 import redis
 import process
 from config import Config
@@ -13,7 +11,6 @@ rdc = redis.StrictRedis(connection_pool=rdp)
 def work(run_id):
     data = rdc.hget(Config.redisResult, run_id)
     process.main(data)
-    time.sleep(5)
 
 
 def main():

@@ -1,0 +1,14 @@
+{
+  "data": [
+    {
+      "in": "data1.in",
+      "out": "data1.out",
+      "run": "run1.out"
+    },
+    {
+      "in": "data2.in",
+      "out": "data2.out",
+      "run": "run2.out"
+    }
+  ]
+}
