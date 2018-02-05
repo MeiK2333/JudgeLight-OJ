@@ -35,8 +35,8 @@ def get_run_error(run_json):
             return 'Runtime Error'
 
 
-def check_one(out_data, run_data):
-    if out_data.rstrip().lower() == run_data.rstrip().lower():  # 忽略末尾空白符
+def check_one(in_data, out_data, run_data):
+    if out_data.rstrip().lower() == run_data.rstrip().lower():
         return 'Accepted'
     return 'Wrong Answer'
 
@@ -68,10 +68,12 @@ def main():
 
     for i in range(len(judge_data['data'])):
         with open(os.path.join('data', judge_data['data'][i]['out'])) as f1:
-            in_data = f1.read()
+            out_data = f1.read()
         with open(os.path.join('data', judge_data['data'][i]['run'])) as f2:
             run_data = f2.read()
-        rst = check_one(in_data, run_data)
+        with open(os.path.join('data', judge_data['data'][i]['in'])) as f3:
+            in_data = f3.read()
+        rst = check_one(in_data, out_data, run_data)
         result_data['check'].append(rst)
         if rst != 'Accepted':
             result_data['result'] = rst
