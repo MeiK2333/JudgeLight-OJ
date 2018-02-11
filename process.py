@@ -4,38 +4,62 @@ import json
 import shutil
 import docker
 import requests
-from config import Config, Judge
+import judgelight
+from config import Config, Judge, run_status, checker_status
 
 
-def update(run_id, msg, result=None, json_data=False):
-    if json_data is False:
+def update(
+    site, runid, result, time_used=0, memory_used=0, status=0,
+    input_='', output_='', answer='', message='', end=False
+):
+    assert site == 'tests' or site == 'result' or site == 'compile'
+    if site == 'compile':
         data = {
-            'msg': msg,
-            'result': result
+            "site": site,
+            "message": message,
+            "time_used": time_used,
+            "memory_used": memory_used,
+            "status": status,
+            "result": result
         }
-        requests.post('http://127.0.0.1:8000/{}/'.format(run_id), data=data)
-    else:
+        requests.post(
+            'http://127.0.0.1:{}/{}/'.format(Config.webPort, runid), data=data)
+    elif site == 'tests':
         data = {
-            'msg': 'result update',
-            'name': 'judge',
-            'judge': json.dumps(msg),
-            'json': True
+            "site": site,
+            "time_used": time_used,
+            "memory_used": memory_used,
+            "input": input_,
+            "output": output_,
+            "answer": answer,
+            "result": result,
+            "message": message,
+            "status": status
         }
-        requests.post('http://127.0.0.1:8000/{}/'.format(run_id), data=data)
+        requests.post(
+            'http://127.0.0.1:{}/{}/'.format(Config.webPort, runid), data=data)
+    elif site == 'result':
+        data = {
+            "site": site,
+            "result": result,
+            "message": message,
+        }
+        if end:
+            data['end'] = 'True'
+        requests.post(
+            'http://127.0.0.1:{}/{}/'.format(Config.webPort, runid), data=data)
 
 
 def init(data):
     """ 进入 docker 之前的初始化操作 """
-    run_id = data['args']['run_id']
-    pid = data['args']['pid']
-    language = data['args']['language']
-    code = data['args']['code']
-    time_limit = int(data['args']['time_limit'])
-    memory_limit = int(data['args']['memory_limit'])
+    runid = data['runid']
+    pid = data['pid']
+    language = data['language']
+    code = data['code']
+    time_limit = data['time_limit']
+    memory_limit = data['memory_limit']
 
-    update(run_id, 'init start')
-
-    work_dir = os.path.join(Config.workDir, run_id)
+    work_dir = os.path.join(Config.workDir, runid)
     work_data_dir = os.path.join(work_dir, 'data')
     os.mkdir(work_data_dir)  # 创建数据目录
     in_file = [
@@ -44,21 +68,19 @@ def init(data):
 
     data_json_file = os.path.join(Config.dataDir, pid, 'judge.json')
     if os.path.exists(data_json_file):  # 判断有无 judge.json 文件
-        with open(data_json_file) as data_json:
-            data_json = json.loads(data_json)
-            for data_file in data_json['data']:  # 添加数据文件
-                in_file.append({
-                    'file': os.path.join(Config.dataDir, pid, data_file["in"]),
-                    'to_dir': work_data_dir
-                })
-            if 'in_file' in data_json.keys():  # 添加 in_file 文件
-                for in_data in data_json['in_file']:
-                    in_file.append({
-                        'file': os.path.join(Config.dataDir, pid, in_data),
-                        'to_dir': work_dir
-                    })
+        with open(data_json_file) as fr:
+            data_json = json.loads(fr.read())
     else:
-        data_json = {'data': []}
+        data_json = {}
+
+    if 'data' in data_json.keys():  # 添加数据文件
+        for data_file in data_json['data']:
+            in_file.append({
+                'file': os.path.join(Config.dataDir, pid, data_file["in"]),
+                'to_dir': work_data_dir
+            })
+    else:
+        data_json['data'] = []
         data_cnt = 1
         file_list = os.listdir(os.path.join(Config.dataDir, pid))
         while True:
@@ -75,24 +97,35 @@ def init(data):
                 data_cnt += 1
             else:
                 break
+
+    if 'in_file' in data_json.keys():  # 添加 in_file 文件
+        for in_data in data_json['in_file']:
+            in_file.append({
+                'file': os.path.join(Config.dataDir, pid, in_data),
+                'to_dir': work_dir
+            })
+
     if os.path.exists(os.path.join(Config.dataDir, pid, 'judge.py')):  # 判断有无 judge.py
         in_file.append({
             'file': os.path.join(Config.dataDir, pid, 'judge.py'),
             'to_dir': work_dir
         })
-    else:
+    else:  # 如果没有显式指定 judge.py 则使用默认的评测程序
         in_file.append({
             'file': os.path.join('template', 'judge.py'),
             'to_dir': work_dir
         })
-    if os.path.exists(os.path.join(Config.dataDir, pid, 'check.py')):  # 判断有无 check.py
+
+    # 添加 checker 文件
+    if not 'checker' in data_json.keys():
+        data_json['checker'] = Judge.default_checker
         in_file.append({
-            'file': os.path.join(Config.dataDir, pid, 'check.py'),
+            'file': data_json['checker']['file'],
             'to_dir': work_dir
         })
     else:
         in_file.append({
-            'file': os.path.join('template', 'check.py'),
+            'file': os.path.join(Config.dataDir, pid, data_json['checker']['file']),
             'to_dir': work_dir
         })
 
@@ -105,21 +138,19 @@ def init(data):
         'time_limit': time_limit,
         'memory_limit': memory_limit
     })
-    data_json['args'] = data['args']
+
     with open(os.path.join(work_dir, 'judge.json'), 'w') as judge_json:  # 写入评测配置
         judge_json.write(json.dumps(data_json))
-    with open(os.path.join(work_dir, Judge.cmd[language]['file']), 'w') as code_file:  # 写入代码
+    # 写入代码
+    with open(os.path.join(work_dir, Judge.cmd[language]['file']), 'w') as code_file:
         code_file.write(code)
     for i in in_file:
         shutil.copy(i['file'], i['to_dir'])
 
-    update(run_id, 'init end')
-
 
 def run_in_docker(data):
-    run_id = data['args']['run_id']
-    update(run_id, 'running in docker')
-    devices = os.path.join(os.path.abspath(Config.workDir), run_id)
+    runid = data['runid']
+    devices = os.path.join(os.path.abspath(Config.workDir), runid)
     volumes = {
         devices: {
             'bind': '/work',
@@ -137,37 +168,111 @@ def run_in_docker(data):
         volumes=volumes,  # 加载数据卷
         working_dir='/work'  # 进入之后的工作目录
     )
-    update(run_id, 'docker running end')
 
 
 def check(data):
     """ 结果评测 """
-    run_id = data['args']['run_id']
-    update(run_id, 'check start')
-    pid = data['args']['pid']
-    data_json_file = os.path.join(Config.workDir, run_id, 'judge.json')
-    work_dir = os.path.join(Config.workDir, run_id)
+    runid = data['runid']
+    pid = data['pid']
+    data_json_file = os.path.join(Config.workDir, runid, 'judge.json')
+    work_dir = os.path.join(Config.workDir, runid)
     work_data_dir = os.path.join(work_dir, 'data')
     with open(data_json_file) as data_json:
         data_json = json.loads(data_json.read())
         for data_file in data_json['data']:  # 复制数据文件
-            shutil.copy(os.path.join(Config.dataDir, pid, data_file["out"]), work_data_dir)
-    os.system('python3 {} {}'.format(os.path.join(work_dir, 'check.py'), work_dir))
-    update(run_id, 'check end')
-    with open(os.path.join(work_dir, 'judge_out.json')) as f:
-        return json.loads(f.read())
+            shutil.copy(os.path.join(Config.dataDir, pid,
+                                     data_file["out"]), work_data_dir)
+
+    with open(os.path.join(Config.workDir, runid, 'run_out.json')) as fr:
+        run_json = json.loads(fr.read())
+
+    # 更新编译状态
+    update(site='compile', runid=runid,
+           result="pass" if run_json['compile']['pass'] else "nopass",
+           time_used=run_json['compile']['time_used'],
+           memory_used=run_json['compile']['memory_used'],
+           status=run_json['compile']['status'],
+           message=run_json['compile']['message'])
+    if run_json['compile']['pass'] is False:
+        update(site='result', runid=runid, result='Compile Error',
+               message=run_json['compile']['message'], end=True)
+        return
+
+    os.chdir(work_dir)  # 修改工作目录
+    result = 'Accepted'
+
+    for i in range(len(data_json['data'])):  # 依次评测每组数据
+        in_file = os.path.join('data', data_json['data'][i]['in'])
+        out_file = os.path.join('data', data_json['data'][i]['out'])
+        run_file = os.path.join('data', data_json['data'][i]['run'])
+
+        with open(in_file) as fr:
+            input_ = fr.read()[:100]
+        with open(run_file) as fr:
+            output_ = fr.read()[:100]
+        with open(out_file) as fr:
+            answer = fr.read()[:100]
+
+        if run_json['run'][i]['status'] != 0:  # 程序运行出错
+            this_status = run_status.get(str(run_json['run'][i]['status']), {
+                                         'result': 'Runtime Error', 'message': '未知的错误'})
+            update(site='tests',
+                   runid=runid,
+                   result=this_status['result'],
+                   input_=input_,
+                   output_=output_,
+                   answer=answer,
+                   message=this_status['message'],
+                   time_used=run_json['run'][i]['time_used'],
+                   memory_used=run_json['run'][i]['memory_used'],
+                   status=run_json['run'][i]['status'])
+            if result == 'Accepted':
+                result = this_status['result']
+            continue
+
+        # 程序运行正常，进行结果评测
+        fr = open('checker.out', 'w')
+        check = judgelight.JudgeLight()
+        check.stderr = fr.fileno()
+        check.fork()
+        rst = check.run('{} {} {} {}'.format(
+            data_json['checker']['cmd'], in_file, run_file, out_file))
+        fr.close()
+        with open('checker.out') as fr:
+            checker_msg = fr.read()[:100]  # 获取 checker 的输出
+
+        this_result = checker_status.get(str(rst.status), 'System Error')
+        if this_result == 'System Error':
+            checker_msg = '未知的评测输出'
+
+        update(site='tests',
+               runid=runid,
+               result=this_result,
+               input_=input_,
+               output_=output_,
+               answer=answer,
+               message=checker_msg,
+               time_used=run_json['run'][i]['time_used'],
+               memory_used=run_json['run'][i]['memory_used'],
+               status=run_json['run'][i]['status'])
+        if result == 'Accepted' and rst.status != 0:
+            result = this_result
+
+    # 更新最终结果
+    update(site='result', runid=runid, result=result, end=True)
 
 
 def main(data):
-    data = json.loads(data)
-    run_id = data['args']['run_id']
+    runid = data['runid']
     try:
         init(data)
+        update(site='result', runid=runid, result='running')
         run_in_docker(data)
-        rst = check(data)
-        update(run_id, rst, json_data=True)
-        update(run_id, 'judge end', result=rst['result'])
+        update(site='result', runid=runid, result='checker')
+        check(data)
     except Exception as e:
-        update(run_id, e)
+        print(e)
+        update(site='result', runid=runid,
+               result='System Error', message=repr(e), end=True)
     else:
         pass

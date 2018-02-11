@@ -1,9 +1,0 @@
-{
-  "data": [
-    {
-      "in": "data1.in",
-      "out": "data1.out",
-      "run": "run1.out"
-    }
-  ]
-}
