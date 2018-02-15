@@ -61,7 +61,6 @@ def init(data):
 
     work_dir = os.path.join(Config.workDir, runid)
     work_data_dir = os.path.join(work_dir, 'data')
-    os.mkdir(work_data_dir)  # 创建数据目录
     in_file = [
         {'file': os.path.join('template', 'models.py'), 'to_dir': work_dir}
     ]
@@ -198,6 +197,7 @@ def check(data):
                message=run_json['compile']['message'], end=True)
         return
 
+    abspath = os.path.abspath('./')
     os.chdir(work_dir)  # 修改工作目录
     result = 'Accepted'
 
@@ -258,6 +258,7 @@ def check(data):
         if result == 'Accepted' and rst.status != 0:
             result = this_result
 
+    os.chdir(abspath)  # 修改回来工作目录
     # 更新最终结果
     update(site='result', runid=runid, result=result, end=True)
 

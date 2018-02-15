@@ -47,6 +47,7 @@ def post():
     if os.path.exists(os.path.join(Config.workDir, runid)):  # 判断文件夹是否可用
         return jsonify({'status': 'error', 'message': runid + ' already exists'})
     os.mkdir(os.path.join(Config.workDir, runid))  # 创建文件夹
+    os.mkdir(os.path.join(Config.workDir, runid, 'data'))  # 创建数据文件夹
 
     data = {
         "runid": runid,
@@ -58,7 +59,7 @@ def post():
         "time_used": 0,
         "memory_used": 0,
         "tests": [],
-        "result": "waiting",
+        "result": "Waiting",
         "message": "",
         "end": False
     }
@@ -181,6 +182,7 @@ def update(runid):
         rdc.hset(Config.redisResult, runid, json.dumps(data))
     else:
         return jsonify({'status': 'error', 'message': 'missing site'})
+    return jsonify({'status': 'success', 'data': data})
 
 
 @app.route('/<runid>/pop/', methods=['POST'])

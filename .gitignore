@@ -102,3 +102,6 @@ ENV/
 
 work/
 .vscode
+
+sdutoj.py
+data/
