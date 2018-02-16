@@ -46,8 +46,14 @@ def post():
         return jsonify({'status': 'error', 'message': 'language ' + language + ' not supported'})
     if os.path.exists(os.path.join(Config.workDir, runid)):  # 判断文件夹是否可用
         return jsonify({'status': 'error', 'message': runid + ' already exists'})
-    os.mkdir(os.path.join(Config.workDir, runid))  # 创建文件夹
-    os.mkdir(os.path.join(Config.workDir, runid, 'data'))  # 创建数据文件夹
+    for i in range(5):
+        try:
+            os.mkdir(os.path.join(Config.workDir, runid))  # 创建文件夹
+            os.mkdir(os.path.join(Config.workDir, runid, 'data'))  # 创建数据文件夹
+        except:
+            continue
+        else:
+            break
 
     data = {
         "runid": runid,
@@ -179,6 +185,10 @@ def update(runid):
             data['time_used'] = time_used
             data['memory_used'] = memory_used
             data['end'] = True
+            try:
+                shutil.rmtree(os.path.join(Config.workDir, runid))
+            except:
+                pass
         rdc.hset(Config.redisResult, runid, json.dumps(data))
     else:
         return jsonify({'status': 'error', 'message': 'missing site'})
@@ -196,7 +206,7 @@ def pop(runid):
         return jsonify({'status': 'error', 'message': runid + ' not finished'})
 
     rdc.hdel(Config.redisResult, runid)
-    shutil.rmtree(os.path.join(Config.workDir, runid))
+    # shutil.rmtree(os.path.join(Config.workDir, runid))
     return jsonify({'status': 'success', 'data': data})
 
 

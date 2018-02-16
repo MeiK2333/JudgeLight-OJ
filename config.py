@@ -41,12 +41,14 @@ class Judge(object):
             'run': 'python3 main.py'
         }
     }
-    compile_time_limit = 3000  # ms
+    compile_time_limit = 10000  # ms
     compile_memory_limit = 655350  # kb
     default_checker = {
         'file': 'template/checker.py',  # 默认评测程序
         'cmd': 'python3 checker.py'  # 默认评测命令
     }
+    checker_time_limit = 3000
+    checker_memory_limit = 655350
 
 
 run_status = {

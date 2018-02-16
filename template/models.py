@@ -57,7 +57,7 @@ class Run(object):
 
         compile_judge = judgelight.JudgeLight()
         compile_judge.time_limit = compile_time_limit
-        compile_judge.memory_limit = compile_memory_limit
+        # compile_judge.memory_limit = compile_memory_limit
 
         compile_out_file = open('compile.out', 'w')
         compile_judge.stderr = compile_out_file.fileno()
@@ -89,5 +89,10 @@ class Run(object):
 
         run_judge.fork()
         rst = run_judge.run(self.run_cmd)
+
+        if rst.memory_used > self.memory_limit:
+            rst.status = 6
+        if rst.time_used > self.time_limit:
+            rst.status = 24
 
         return rst

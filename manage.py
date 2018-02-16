@@ -13,6 +13,7 @@ def work(runid):
     print('get task ' + runid)
     data = rdc.hget(Config.redisResult, runid)
     process.main(json.loads(bytes.decode(data)))
+    print('get task ' + runid + ' end')
 
 
 def main():
@@ -24,6 +25,7 @@ def main():
         task = rdc.blpop(Config.redisList)
         runid = bytes.decode(task[1])
         pool.apply_async(work, args=(runid,))
+    pool.close()
     pool.join()
 
 

@@ -1,6 +1,7 @@
 # coding=utf-8
 import os
 import json
+import time
 import shutil
 import docker
 import requests
@@ -135,7 +136,7 @@ def init(data):
         'compile_time_limit': Judge.compile_time_limit,
         'compile_memory_limit': Judge.compile_memory_limit,
         'time_limit': time_limit,
-        'memory_limit': memory_limit
+        'memory_limit': memory_limit if language != 'java' else memory_limit + 6666666
     })
 
     with open(os.path.join(work_dir, 'judge.json'), 'w') as judge_json:  # 写入评测配置
@@ -156,17 +157,25 @@ def run_in_docker(data):
             'mode': 'rw'
         }
     }
-    client = docker.from_env()
-    client.containers.run(
-        image=Config.dockerImage,  # docker 的镜像名
-        command="python3 judge.py",  # 进入之后执行的操作
-        auto_remove=True,  # 运行结束之后自动清理
-        cpuset_cpus='1',  # 可使用的 CPU 核数
-        network_disabled=True,  # 禁用网络
-        network_mode='none',  # 禁用网络
-        volumes=volumes,  # 加载数据卷
-        working_dir='/work'  # 进入之后的工作目录
-    )
+    for i in range(5):  # 最多进行五次连接尝试
+        try:
+            client = docker.from_env()
+            client.containers.run(
+                image=Config.dockerImage,  # docker 的镜像名
+                command="python3 judge.py",  # 进入之后执行的操作
+                auto_remove=True,  # 运行结束之后自动清理
+                cpuset_cpus='1',  # 可使用的 CPU 核数
+                mem_limit='1024m',  # 可用内存数
+                network_disabled=True,  # 禁用网络
+                network_mode='none',  # 禁用网络
+                volumes=volumes,  # 加载数据卷
+                working_dir='/work'  # 进入之后的工作目录
+            )
+        except Exception as e:
+            time.sleep(i * 3 + 2)
+        else:
+            break
+
 
 
 def check(data):
@@ -234,6 +243,8 @@ def check(data):
         fr = open('checker.out', 'w')
         check = judgelight.JudgeLight()
         check.stderr = fr.fileno()
+        check.time_limit = Judge.checker_time_limit
+        check.memory_limit = Judge.checker_memory_limit
         check.fork()
         rst = check.run('{} {} {} {}'.format(
             data_json['checker']['cmd'], in_file, run_file, out_file))
