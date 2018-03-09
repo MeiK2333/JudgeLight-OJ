@@ -63,8 +63,12 @@ class TestJudger(unittest.TestCase):
 
         data = rdc.hget(Config.redisResult, run_id)
         data = json.loads(data)
-        self.assertEqual(data,
-                         {'run_id': str(run_id), 'language': 'python3', 'code': 'print("Hello World!")', 'pid': '1000'})
+
+        tdata = {'run_id': str(run_id), 'language': 'python3', 'code': 'print("Hello World!")', 'pid': '1000'}
+
+        for i in tdata:
+            self.assertIn(i, data.keys())
+            self.assertEqual(tdata[i], data[i])
 
     def test_add_judger_to_list(self):
         run_id = 1000

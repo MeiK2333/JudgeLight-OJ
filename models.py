@@ -81,6 +81,14 @@ class Judger(object):
 
 class Result(object):
     def __init__(self):
+        """
+        {
+            compiler: Runner
+            runner: [Runner]
+            checker: [Runner]
+            result: str
+        }
+        """
         self.compiler = None
         self.runner = None
         self.checker = None
@@ -89,6 +97,13 @@ class Result(object):
 
 class Runner(object):
     def __init__(self):
+        """
+        {
+            state: int
+            error: bool
+            message: str
+        }
+        """
         self.state = None
         self.error = None
         self.message = None
