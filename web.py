@@ -1,6 +1,6 @@
 # coding=utf-8
 from config import Config
-from models import Judger, Result, Runner, add_judger_to_list, get_judge_list
+from models import Judger, add_judger_to_list, get_judge_list
 
 from flask import Flask, request, jsonify
 

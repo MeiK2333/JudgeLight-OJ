@@ -21,6 +21,12 @@ def get_judge_list():
     return judge_list_data
 
 
+def get_task():
+    task = rdc.blpop(Config.redisList)
+    run_id = bytes.decode(task[1])
+    return run_id
+
+
 class Judger(object):
     def __init__(self, run_id):
         self.run_id = str(run_id)
@@ -55,6 +61,34 @@ class Judger(object):
         self.language = data.get('language')
         self.time_limit = int(data.get('time_limit')) if data.get('time_limit') else None
         self.memory_limit = int(data.get('memory_limit')) if data.get('memory_limit') else None
+
+        temp = data.get('result')
+        if temp:
+            result = Result()
+
+            compler = temp.get('compiler')
+            if compler:
+                run = Runner()
+                run.parse_data(compler)
+                result.compiler = compler
+
+            runner = temp.get('runner')
+            if runner:
+                runner_list = []
+                for runn in runner:
+                    run = Runner()
+                    run.parse_data(runn)
+                    runner_list.append(run)
+                result.runner = runner_list
+
+            checker = temp.get('checker')
+            if checker:
+                checker_list = []
+                for check in checker:
+                    run = Runner()
+                    run.parse_data(check)
+                    checker_list.append(run)
+                result.checker = checker_list
 
     def update(self):
         """
@@ -107,3 +141,8 @@ class Runner(object):
         self.state = None
         self.error = None
         self.message = None
+
+    def parse_data(self, data):
+        self.state = data['state']
+        self.error = data['error']
+        self.message = data['message']
