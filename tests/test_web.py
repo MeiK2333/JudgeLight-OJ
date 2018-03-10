@@ -86,7 +86,11 @@ class TestWeb(unittest.TestCase):
         requests.delete('http://127.0.0.1:%d/%s/' % (Config.webPort, data['run_id']))
         rst = requests.get('http://127.0.0.1:%d/%s/' % (Config.webPort, data['run_id']))
         rst = rst.json()
-        self.assertEqual(rst, {})
+        self.assertEqual(rst['code'], None)
+        self.assertEqual(rst['language'], None)
+        self.assertEqual(rst['memory_limit'], None)
+        self.assertEqual(rst['pid'], None)
+        self.assertEqual(rst['time_limit'], None)
 
         self.flushall()
 

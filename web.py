@@ -26,20 +26,13 @@ def post():
     Submit a new Judger
     """
     run_id = request.form.get('run_id')
-    pid = request.form.get('pid')
-    language = request.form.get('language')
-    code = request.form.get('code')
-    time_limit = int(request.form.get('time_limit'))
-    memory_limit = int(request.form.get('memory_limit'))
 
     judger = Judger(run_id)
-    judger.data = dict(request.form)
-
-    judger.pid = pid
-    judger.language = language
-    judger.code = code
-    judger.time_limit = time_limit
-    judger.memory_limit = memory_limit
+    data = dict(request.form)
+    for i in data:
+        data[i] = data[i][0]
+    map(lambda x: x[0], data)
+    judger.data = data
 
     judger.update()
     add_judger_to_list(judger)

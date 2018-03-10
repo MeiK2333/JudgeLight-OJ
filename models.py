@@ -28,84 +28,55 @@ def get_task():
 
 
 class Judger(object):
+    keys = ['run_id', 'pid', 'language', 'code', 'time_limit', 'memory_limit']
+
     def __init__(self, run_id):
         self.run_id = str(run_id)
-        self.data = {}  # all data
         self.pid = None
         self.language = None
         self.code = None
-        self.result = None
         self.time_limit = None
         self.memory_limit = None
+        self.result = None
+        self.other = None
         data = rdc.hget(Config.redisResult, run_id)
-        self.parse_data(data)
+        if data:
+            self.data = json.loads(data)
 
-    def parse_data(self, data):
-        """
-        Parse strings into Python data
-        {
-            run_id: str,
-            pid: str,
-            code: str,
-            language: str,
-            time_limit: int,
-            memory_limit: int,
-            result: Result,
-            data: dict
+    @property
+    def data(self):
+        _data = {
+            'run_id': self.run_id,
+            'pid': self.pid,
+            'language': self.language,
+            'code': self.code,
+            'time_limit': self.time_limit,
+            'memory_limit': self.memory_limit,
         }
+        if self.result:
+            _data['result'] = self.result
+        if self.other:
+            _data.update(self.other)
+        return _data
+
+    @data.setter
+    def data(self, data):
         """
-        data = json.loads(data or '{}')
-        self.data = data
-        self.pid = data.get('pid')
-        self.code = data.get('code')
-        self.language = data.get('language')
-        self.time_limit = int(data.get('time_limit')) if data.get('time_limit') else None
-        self.memory_limit = int(data.get('memory_limit')) if data.get('memory_limit') else None
-
-        temp = data.get('result')
-        if temp:
-            result = Result()
-
-            compler = temp.get('compiler')
-            if compler:
-                run = Runner()
-                run.parse_data(compler)
-                result.compiler = compler
-
-            runner = temp.get('runner')
-            if runner:
-                runner_list = []
-                for runn in runner:
-                    run = Runner()
-                    run.parse_data(runn)
-                    runner_list.append(run)
-                result.runner = runner_list
-
-            checker = temp.get('checker')
-            if checker:
-                checker_list = []
-                for check in checker:
-                    run = Runner()
-                    run.parse_data(check)
-                    checker_list.append(run)
-                result.checker = checker_list
+        Parse the data in data into a class object
+        """
+        # Judge that data contains all the required parameters
+        assert all(map(self.data.__contains__, self.keys))
+        self.pid = data.pop('pid')
+        self.language = data.pop('language')
+        self.code = data.pop('code')
+        self.time_limit = int(data.pop('time_limit'))
+        self.memory_limit = int(data.pop('memory_limit'))
+        if 'result' in data.keys():
+            self.result = data.pop('result')
+        self.other = data
 
     def update(self):
-        """
-        Update data to Redis
-        """
-        if self.run_id is not None:
-            self.data['run_id'] = self.run_id
-        if self.pid is not None:
-            self.data['pid'] = self.pid
-        if self.code is not None:
-            self.data['code'] = self.code
-        if self.language is not None:
-            self.data['language'] = self.language
-        if self.time_limit is not None:
-            self.data['time_limit'] = self.time_limit
-        if self.memory_limit is not None:
-            self.data['memory_limit'] = self.memory_limit
+        assert all(map(self.data.__contains__, self.keys))
         rdc.hset(Config.redisResult, self.run_id, json.dumps(self.data))
 
     def delete(self):
