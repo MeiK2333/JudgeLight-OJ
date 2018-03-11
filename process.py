@@ -4,6 +4,8 @@ from models import Judger
 
 import os
 import sys
+import json
+import docker
 import shutil
 import logging
 
@@ -39,6 +41,15 @@ def env_init(judger):
     # Copy problem data
     work_data_dir_path = os.path.join(work_dir_path, 'data')
     shutil.copytree(problem_data_path, work_data_dir_path)
+
+    # Writer Judger data to judger.json
+    run_data = judger.data
+    with open(os.path.join(work_dir_path, 'judger.json'), 'w') as fr:
+        fr.write(json.dumps(run_data))
+
+
+def run_in_docker(judger):
+    pass
 
 
 def main(judger):
