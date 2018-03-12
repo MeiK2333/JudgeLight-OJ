@@ -49,14 +49,35 @@ def env_init(judger):
 
 
 def run_in_docker(judger):
-    pass
+    run_id = judger.run_id
+    devices = os.path.join(os.path.abspath(Config.workDir), run_id)
+    volumes = {
+        devices: {
+            'bind': '/work',
+            'mode': 'rw'
+        }
+    }
+    client = docker.from_env()
+    client.containers.run(
+        image=Config.dockerImage,  # docker 的镜像名
+        command="python3 judger.py",  # 进入之后执行的操作
+        auto_remove=True,  # 运行结束之后自动清理
+        cpuset_cpus='1',  # 可使用的 CPU 核数
+        mem_limit='1024m',  # 可用内存数
+        network_disabled=True,  # 禁用网络
+        network_mode='none',  # 禁用网络
+        volumes=volumes,  # 加载数据卷
+        working_dir='/work'  # 进入之后的工作目录
+    )
 
 
 def main(judger):
     try:
         logger.info('start judge %s' % judger.run_id)
         env_init(judger)
+        logger.info('%s try run docker' % judger.run_id)
+        run_in_docker(judger)
     except Exception as er:
         logger.error(repr(er))
     else:
-        pass
+        logger.info('%s judge end' % judger.run_id)
