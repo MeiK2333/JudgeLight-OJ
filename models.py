@@ -13,8 +13,8 @@ def add_judger_to_list(judger):
 
 
 def get_judge_list():
-    l = rdc.llen(Config.redisList)
-    judge_list = rdc.lrange(Config.redisList, 0, l)
+    _l = rdc.llen(Config.redisList)
+    judge_list = rdc.lrange(Config.redisList, 0, _l)
     judge_list_data = []
     for i in judge_list:
         judge_list_data.append(bytes.decode(i))
@@ -89,14 +89,16 @@ class Result(object):
         """
         {
             compiler: Runner
-            runner: [Runner]
-            checker: [Runner]
-            result: str
+            result: [
+                {
+                    runner: Runner,
+                    checker: Runner
+                },
+                ...
+            ]
         }
         """
         self.compiler = None
-        self.runner = None
-        self.checker = None
         self.result = None
 
 

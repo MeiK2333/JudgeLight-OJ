@@ -1,6 +1,5 @@
 # coding=utf-8
 from config import Config
-from models import Judger
 
 import os
 import sys
@@ -11,17 +10,17 @@ import logging
 
 
 def set_logging():
-    logger = logging.getLogger("Judger")
+    _logger = logging.getLogger("Judger")
     formatter = logging.Formatter('%(asctime)s %(levelname)-8s: %(message)s')
     file_handler = logging.FileHandler("judger.log")
     file_handler.setFormatter(formatter)
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.formatter = formatter
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
-    # logger.setLevel(logging.INFO)
-    logger.setLevel(logging.DEBUG)
-    return logger
+    _logger.addHandler(file_handler)
+    _logger.addHandler(console_handler)
+    # _logger.setLevel(logging.INFO)
+    _logger.setLevel(logging.DEBUG)
+    return _logger
 
 
 logger = set_logging()
