@@ -5,7 +5,7 @@ import json
 class JudgeModel(object):
 
     def __init__(self):
-        with open('judge.json') as fr:
+        with open('judger.json') as fr:
             self.judge_data = json.loads(fr.read())
 
     def init(self):
