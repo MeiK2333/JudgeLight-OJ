@@ -41,3 +41,5 @@ class JudgerConfig(object):
             'run': 'python3 main.py'
         }
     }
+    compiler_time_limit = 10000  # ms
+    compiler_memory_limit = 6553600  # kb

@@ -107,15 +107,12 @@ class Runner(object):
         """
         {
             state: int
-            error: bool
             message: str
         }
         """
         self.state = None
-        self.error = None
         self.message = None
 
     def parse_data(self, data):
         self.state = data['state']
-        self.error = data['error']
         self.message = data['message']
