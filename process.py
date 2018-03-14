@@ -46,6 +46,17 @@ def env_init(judger):
     with open(os.path.join(work_dir_path, 'judger.json'), 'w') as fr:
         fr.write(json.dumps(run_data))
 
+    # Copy config.py
+    shutil.copy('config.py', work_dir_path)
+
+    # Copy models.py
+    template_path = os.path.join('template')
+    shutil.copy(os.path.join(template_path, 'models.py'), work_dir_path)
+
+    # Copy judger.py
+    if not os.path.exists(os.path.join(work_dir_path, 'judger.py')):
+        shutil.copy(os.path.join(template_path, 'judger.py'), work_dir_path)
+
 
 def run_in_docker(judger):
     run_id = judger.run_id
@@ -57,7 +68,7 @@ def run_in_docker(judger):
         }
     }
     client = docker.from_env()
-    client.containers.run(
+    rst = client.containers.run(
         image=Config.dockerImage,  # docker 的镜像名
         command="python3 judger.py",  # 进入之后执行的操作
         auto_remove=True,  # 运行结束之后自动清理
@@ -68,6 +79,7 @@ def run_in_docker(judger):
         volumes=volumes,  # 加载数据卷
         working_dir='/work'  # 进入之后的工作目录
     )
+    print(rst)
 
 
 def main(judger):

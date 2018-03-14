@@ -11,3 +11,33 @@ class Config(object):
     redisHost = '127.0.0.1'  # redis host
     redisPort = '6379'  # redis port
     webPort = 5000  # web port
+
+
+class JudgerConfig(object):
+    parameter = {
+        'gcc': {
+            'file': 'main.c',
+            'compile': 'gcc main.c -o main.out --std=gnu11 -O2',
+            'run': './main.out'
+        },
+        'g++': {
+            'file': 'main.cpp',
+            'compile': 'g++ main.cpp -o main.out --std=gnu++11 -O2',
+            'run': './main.out'
+        },
+        'java': {
+            'file': 'Main.java',
+            'compile': 'javac Main.java',
+            'run': 'java Main'
+        },
+        'python2': {
+            'file': 'main.py',
+            'compile': 'python2 -m py_compile main.py',
+            'run': 'python2 main.py'
+        },
+        'python3': {
+            'file': 'main.py',
+            'compile': 'python3 -m py_compile main.py',
+            'run': 'python3 main.py'
+        }
+    }

@@ -1,5 +1,7 @@
 # coding=utf-8
 import json
+from config import JudgerConfig
+import judgelight
 
 
 class JudgeModel(object):
