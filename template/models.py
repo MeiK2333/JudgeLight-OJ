@@ -58,3 +58,7 @@ class JudgeModel(object):
             if data_in_str in data_list:
                 in_file = os.path.join('data', data_in_str)
                 out_file = os.path.join('data', data_out_str)
+                self.run_one(in_file, out_file)
+            else:
+                break
+            data_cnt += 1
