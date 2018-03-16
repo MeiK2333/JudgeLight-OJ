@@ -108,11 +108,17 @@ class Runner(object):
         {
             state: int
             message: str
+            time_used: int
+            memory_used: int
         }
         """
         self.state = None
         self.message = None
+        self.time_used = None
+        self.memory_used = None
 
     def parse_data(self, data):
         self.state = data['state']
         self.message = data['message']
+        self.time_used = data['time_used']
+        self.memory_used = data['memory_used']
