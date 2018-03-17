@@ -66,7 +66,24 @@ class JudgeModel(object):
         return runner
 
     def checker_one(self, in_file, out_file, ans_file):
-        pass
+        with open(in_file) as fr:
+            input_ = fr.read()
+        with open(out_file) as fr:
+            output_ = fr.read()
+        with open(ans_file) as fr:
+            answer = fr.read()
+
+        checker = {
+            'message': 'stand judge',
+            'time_used': -1,
+            'memory_used': -1,
+        }
+        if output_.strip() == answer.strip():
+            checker['state'] = JudgerConfig._ok
+        if output_.split() == answer.split():
+            checker['state'] = JudgerConfig._pe
+        checker['state'] = JudgerConfig._wa
+        return checker
 
     def run(self):
         self.init()
@@ -78,14 +95,38 @@ class JudgeModel(object):
 
         self.result = []
         data_cnt = 1
-        while True:
+        judge_all = self.judge_data.get('judge_all', True)  # 是否评测所有数据
+        last_judge_state = True  # 上一组数据评测是否正常
+
+        while True:  # 评测所有名称规则为 data{}.in 的数据
             data_in_str = 'data{}.in'.format(data_cnt)
             data_out_str = 'data{}.out'.format(data_cnt)
             if data_in_str in data_list:
+                # 如果参数指定不评测所有数据，那么在遇到评测错误时就会停止评测
+                if last_judge_state is False and judge_all is False:
+                    self.result.append({'runner': {}, 'checker': {}})
+                    continue
                 in_file = os.path.join('data', data_in_str)
                 out_file = os.path.join('data', 'run.out')
                 ans_file = os.path.join('data', data_out_str)
-                self.run_one(in_file, out_file)
+                run_rst = self.run_one(in_file, out_file)
+                if run_rst['state'] != 0:
+                    last_judge_state = False
+                    check_rst = {
+                        'message': '',
+                        'state': -1,
+                        'time_used': -1,
+                        'memory_used': -1
+                    }
+                else:
+                    check_rst = self.checker_one(in_file, out_file, ans_file)
+                self.result.append({
+                    'runner': run_rst,
+                    'checker': check_rst
+                })
             else:
                 break
             data_cnt += 1
+
+        with open('result.json', 'w') as fr:  # 结果写入文件
+            fr.write(json.dumps(self.result))

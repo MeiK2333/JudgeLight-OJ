@@ -43,3 +43,10 @@ class JudgerConfig(object):
     }
     compiler_time_limit = 10000  # ms
     compiler_memory_limit = 6553600  # kb
+    checker_time_limit = 10000  # ms
+    checker_memory_limit = 6553600  # kb
+
+    _ok = 0  # accepted
+    _wa = 1  # wrong answer
+    _pe = 2  # presentation error
+    _se = 3  # system error
