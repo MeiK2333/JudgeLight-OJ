@@ -68,7 +68,7 @@ def run_in_docker(judger):
         }
     }
     client = docker.from_env()
-    rst = client.containers.run(
+    client.containers.run(
         image=Config.dockerImage,  # docker 的镜像名
         command="python3 judger.py",  # 进入之后执行的操作
         auto_remove=True,  # 运行结束之后自动清理
@@ -79,7 +79,13 @@ def run_in_docker(judger):
         volumes=volumes,  # 加载数据卷
         working_dir='/work'  # 进入之后的工作目录
     )
-    print(rst)
+
+
+def update_result(judger):
+    run_id = judger.run_id
+    with open(os.path.join(Config.workDir, run_id, 'result.json')) as fr:
+        data = json.loads(fr.read())
+    print(json.dumps(data, ensure_ascii=False, indent=2))
 
 
 def main(judger):
@@ -88,6 +94,7 @@ def main(judger):
         env_init(judger)
         logger.info('%s try run docker' % judger.run_id)
         run_in_docker(judger)
+        update_result(judger)
     except Exception as er:
         logger.error(repr(er))
     else:
