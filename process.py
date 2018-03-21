@@ -1,5 +1,6 @@
 # coding=utf-8
 from config import Config
+from models import Result, Runner
 
 import os
 import sys
@@ -85,7 +86,21 @@ def update_result(judger):
     run_id = judger.run_id
     with open(os.path.join(Config.workDir, run_id, 'result.json')) as fr:
         data = json.loads(fr.read())
-    print(json.dumps(data, ensure_ascii=False, indent=2))
+
+    result = Result()
+    result.compiler = Runner()
+    result.compiler.data = data['compiler']
+    result.result = []
+    for i in data['result']:
+        runner = Runner()
+        checker = Runner()
+        runner.data = i['runner']
+        checker.data = i['checker']
+        result.result.append({
+            'runner': runner,
+            'checker': checker
+        })
+    print(result)
 
 
 def main(judger):

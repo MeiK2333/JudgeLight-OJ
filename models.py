@@ -101,6 +101,12 @@ class Result(object):
         self.compiler = None
         self.result = None
 
+    def __str__(self):
+        return json.dumps({
+            'compiler': self.compiler.data,
+            'checker': [{'runner': runner['runner'].data, 'checker': runner['checker'].data} for runner in self.result]
+        }, ensure_ascii=False, indent=4)
+
 
 class Runner(object):
     def __init__(self):
@@ -110,15 +116,39 @@ class Runner(object):
             message: str
             time_used: int
             memory_used: int
+            other: dict
         }
         """
         self.state = None
         self.message = None
         self.time_used = None
         self.memory_used = None
+        self.other = None
 
-    def parse_data(self, data):
-        self.state = data['state']
-        self.message = data['message']
-        self.time_used = data['time_used']
-        self.memory_used = data['memory_used']
+    @property
+    def data(self):
+        _data = {
+            'state': self.state,
+            'message': self.message,
+            'time_used': self.time_used,
+            'memory_used': self.memory_used,
+            'other': self.other
+        }
+        return _data
+
+    @data.setter
+    def data(self, data):
+        self.state = data.pop('state')
+        self.message = data.pop('message')
+        self.time_used = data.pop('time_used')
+        self.memory_used = data.pop('memory_used')
+        if data:
+            self.other = data
+
+    def __str__(self):
+        return json.dumps({
+            'state': self.state,
+            'message': self.message,
+            'time_used': self.time_used,
+            'memory_used': self.memory_used
+        }, ensure_ascii=False, indent=4)
