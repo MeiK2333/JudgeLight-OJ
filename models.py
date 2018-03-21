@@ -101,6 +101,27 @@ class Result(object):
         self.compiler = None
         self.result = None
 
+    @property
+    def data(self):
+        return {
+            'compiler': self.compiler.data,
+            'checker': [{'runner': runner['runner'].data, 'checker': runner['checker'].data} for runner in self.result]
+        }
+
+    @data.setter
+    def data(self, data):
+        self.compiler.data = data['compiler']
+        self.result = []
+        for i in data['result']:
+            runner = Runner()
+            checker = Runner()
+            runner.data = i['runner']
+            checker.data = i['checker']
+            self.result.append({
+                'runner': runner,
+                'checker': checker
+            })
+
     def __str__(self):
         return json.dumps({
             'compiler': self.compiler.data,
