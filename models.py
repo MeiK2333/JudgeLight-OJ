@@ -54,7 +54,7 @@ class Judger(object):
             'memory_limit': self.memory_limit,
         }
         if self.result:
-            _data['result'] = self.result
+            _data['result'] = self.result.data
         if self.other:
             _data.update(self.other)
         return _data
@@ -72,7 +72,7 @@ class Judger(object):
         self.time_limit = int(data.pop('time_limit'))
         self.memory_limit = int(data.pop('memory_limit'))
         if 'result' in data.keys():
-            self.result = data.pop('result')
+            self.result.data = data.pop('result')
         self.other = data
 
     def update(self):

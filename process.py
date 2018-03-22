@@ -100,7 +100,10 @@ def update_result(judger):
             'runner': runner,
             'checker': checker
         })
-    print(result)
+    judger.result = result
+    print(json.dumps(judger.data, ensure_ascii=False, indent=4))
+    judger.update()
+    # print(json.dumps(judger.data, ensure_ascii=False, indent=4))
 
 
 def main(judger):
