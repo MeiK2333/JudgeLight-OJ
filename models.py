@@ -72,6 +72,7 @@ class Judger(object):
         self.time_limit = int(data.pop('time_limit'))
         self.memory_limit = int(data.pop('memory_limit'))
         if 'result' in data.keys():
+            self.result = Result()
             self.result.data = data.pop('result')
         self.other = data
 
@@ -105,11 +106,12 @@ class Result(object):
     def data(self):
         return {
             'compiler': self.compiler.data,
-            'checker': [{'runner': runner['runner'].data, 'checker': runner['checker'].data} for runner in self.result]
+            'result': [{'runner': runner['runner'].data, 'checker': runner['checker'].data} for runner in self.result]
         }
 
     @data.setter
     def data(self, data):
+        self.compiler = Runner()
         self.compiler.data = data['compiler']
         self.result = []
         for i in data['result']:
@@ -125,7 +127,7 @@ class Result(object):
     def __str__(self):
         return json.dumps({
             'compiler': self.compiler.data,
-            'checker': [{'runner': runner['runner'].data, 'checker': runner['checker'].data} for runner in self.result]
+            'result': [{'runner': runner['runner'].data, 'checker': runner['checker'].data} for runner in self.result]
         }, ensure_ascii=False, indent=4)
 
 
