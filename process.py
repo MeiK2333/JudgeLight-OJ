@@ -101,9 +101,7 @@ def update_result(judger):
             'checker': checker
         })
     judger.result = result
-    # print(json.dumps(judger.data, ensure_ascii=False, indent=4))
     judger.update()
-    # print(json.dumps(judger.data, ensure_ascii=False, indent=4))
 
 
 def main(judger):
