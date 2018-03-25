@@ -11,11 +11,6 @@ rdc = redis.StrictRedis(connection_pool=rdp)
 
 
 class TestWeb(unittest.TestCase):
-    """
-    Test Web
-    Please run web.py
-    don't run manage.py
-    """
 
     def flushall(self):
         keys = rdc.hkeys(Config.redisResult)

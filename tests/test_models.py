@@ -11,11 +11,6 @@ rdc = redis.StrictRedis(connection_pool=rdp)
 
 
 class TestJudger(unittest.TestCase):
-    """
-    Test Web
-    Please run web.py
-    don't run manage.py
-    """
 
     test_data = {
         "code": "100",
