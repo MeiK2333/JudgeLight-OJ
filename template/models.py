@@ -50,6 +50,7 @@ class JudgeModel(object):
         judger.memory_limit = self.judge_data['memory_limit']
         judger.stdin = in_file.fileno()
         judger.stdout = out_file.fileno()
+        judger.uid = JudgerConfig.uid
         judger.fork()
 
         rst = judger.run(JudgerConfig.parameter[self.language]['run'])

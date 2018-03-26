@@ -45,6 +45,7 @@ class JudgerConfig(object):
     compiler_memory_limit = 6553600  # kb
     checker_time_limit = 10000  # ms
     checker_memory_limit = 6553600  # kb
+    uid = 100  # set_uid
 
     _ok = 0  # accepted
     _wa = 1  # wrong answer
