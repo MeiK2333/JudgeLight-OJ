@@ -103,3 +103,5 @@ ENV/
 work/
 .vscode
 .idea
+
+/tests
