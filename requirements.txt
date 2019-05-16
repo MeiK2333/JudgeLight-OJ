@@ -1,0 +1,3 @@
+JudgeLight==2.0.5
+sanic
+celery
