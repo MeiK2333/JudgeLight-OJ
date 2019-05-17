@@ -16,3 +16,7 @@ CONFIG['language'] = {
 }
 
 CONFIG['data_folder'] = os.path.abspath('data')
+CONFIG['workdir'] = os.path.abspath('work')
+
+if not os.path.exists(CONFIG['workdir']):
+    os.mkdir(CONFIG['workdir'])
