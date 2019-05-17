@@ -1,6 +1,6 @@
 from celery import Celery
 from sanic import Sanic
-from app.config import CONFIG
+from config import CONFIG
 
 celery = Celery(
     broker=CONFIG['celery_broker'],
