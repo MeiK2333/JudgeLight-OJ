@@ -14,5 +14,5 @@ celery -A app.tasks worker --loglevel=info
 ### web
 
 ```
-python app.py
+python run.py
 ```
