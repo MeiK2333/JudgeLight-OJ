@@ -1,5 +1,6 @@
 from celery import Celery
-from sanic import Sanic
+from flask import Flask
+
 from config import CONFIG
 
 celery = Celery(
@@ -9,12 +10,12 @@ celery = Celery(
 
 
 def create_app(config):
-    app = Sanic(__name__)
+    app = Flask(__name__)
     app.config.update(config)
 
     celery.config_from_object(app.config)
 
     from app.views import views
-    app.blueprint(views)
+    app.register_blueprint(views)
 
     return app

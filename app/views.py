@@ -1,14 +1,12 @@
-from sanic import Blueprint
-from sanic.request import Request
-from sanic.response import json
+from flask import Blueprint, jsonify, request
 
-from app.tasks import run_judge, success_callback, failure_callback
+from app.tasks import failure_callback, run_judge, success_callback
 
-views = Blueprint('views')
+views = Blueprint('views', __name__)
 
 
-@views.route('/', methods=['POST'])
-async def index(request: Request):
+@views.route('/', methods=['GET', 'POST'])
+def index():
     """
     {
         token,
@@ -21,9 +19,9 @@ async def index(request: Request):
     }
     """
     # TODO 完成参数解析与数据传递
-    result = run_judge.apply_async(
+    task = run_judge.apply_async(
         ('', '', '', '', ''),
         link=success_callback.s(),
         link_error=failure_callback.s()
     )
-    return json(result.status)
+    return jsonify(task.status)
