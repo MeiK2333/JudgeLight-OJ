@@ -3,7 +3,7 @@ from app.judge import judge
 
 
 @celery.task
-def run_judge(token, run_id, problem, language, code, oi=False):
+def run_judge(token, run_id, problem, language, code, oi=True):
     """ 提交 celery 异步执行评测 """
     result = judge(token, run_id, problem, language, code, oi)
     return result
