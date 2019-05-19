@@ -13,28 +13,43 @@ def index():
         token,
         run_id,
         problem,
+        time_limit,
+        memory_limit,
         language,
         code,
         callback_url,
         oi,
     }
     """
-    # TODO 完成参数解析与数据传递
     json_data = request.get_json()
-    token = json_data.get('token')
-    run_id = json_data.get('run_id')
-    problem_id = json_data.get('problem_id')
-    language = json_data.get('language')
-    code = json_data.get('code')
-    callback_url = json_data.get('callback_url')
+    token = json_data['token']
+    run_id = json_data['run_id']
+    problem_id = json_data['problem_id']
+    time_limit = json_data['time_limit']
+    memory_limit = json_data['memory_limit']
+    language = json_data['language']
+    code = json_data['code']
+    callback_url = json_data['callback_url']
     oi = True if json_data.get('oi') is None else False
 
     if token != CONFIG['token']:
-        return jsonify({}, 401)
+        return jsonify({'message': 'token error!'}, 401)
 
-    task = run_judge.apply_async(
-        (token, run_id, problem_id, language, code, oi),
-        link=success_callback.s(callback_url),
-        link_error=failure_callback.s(callback_url)
+    solution = {
+        'token': token,
+        'run_id': run_id,
+        'problem_id': problem_id,
+        'language': language,
+        'time_limit': time_limit,
+        'memory_limit': memory_limit,
+        'code': code,
+        'oi': oi,
+    }
+
+    run_judge.apply_async(
+        (token, solution),
+        link=success_callback.s(solution, callback_url),
+        link_error=failure_callback.s(solution, callback_url)
     )
-    return jsonify(task.status)
+
+    return jsonify('Success')

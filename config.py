@@ -10,7 +10,7 @@ CONFIG['celery_backend'] = 'amqp://localhost'
 CONFIG['language'] = {
     'gcc': {
         'filename': 'main.c',
-        'compile': 'gcc main.c -o a.out -O2',
+        'compile': '/usr/bin/gcc main.c -o a.out -O2',
         'run': 'a.out',
     },
 }
