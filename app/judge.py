@@ -18,6 +18,8 @@ def judge(token, solution):
     }
     work_dir = os.path.join(CONFIG['workdir'], solution['run_id'])
     # 进入评测目录
+    if os.path.exists(work_dir):
+        shutil.rmtree(work_dir)
     os.mkdir(work_dir)
     os.chdir(work_dir)
 
@@ -38,6 +40,10 @@ def judge(token, solution):
 
 def judge_one(solution, data, is_spj):
     """ 评测一组数据 """
+    # 复制数据文件到评测目录
+    shutil.copyfile(data['in'], 'data.in')
+    shutil.copyfile(data['out'], 'data.out')
+
     time_limit = solution['time_limit']
     memory_limit = solution['memory_limit']
     language = solution['language']
@@ -45,21 +51,44 @@ def judge_one(solution, data, is_spj):
     result = {}
 
     language_config = CONFIG['language'][language]
-    cmd = language_config[language]['run'].split()
+    cmd = language_config['run'].split()
     jl = JudgeLight(
         cmd[0], cmd,
         time_limit=time_limit,
         memory_limit=memory_limit,
         real_time_limit=time_limit * 2 + 5000,
         output_size_limit=6553500,
-        input_file_path=data['in'],
+        input_file_path='data.in',
         output_file_path='output.txt',
         error_file_path='error.txt',
         allow_system_calls_rule='default',
     )
     stats = jl.run()
 
+    result.update(stats)
+    result['syscall'] = result.pop('re_syscall')
+
+    if stats['re_flag'] != 0:
+        result['result'] = 'RE'
+    else:
+        # 对答案进行判断
+        if is_spj:
+            # TODO SPJ
+            pass
+        else:
+            result['result'] = std_check()
+
+    # 删除本组文件
+    os.remove('data.in')
+    os.remove('data.out')
+
     return result
+
+
+def std_check():
+    """ 标准检查 """
+    # TODO
+    return 'AC'
 
 
 def get_all_data(solution):

@@ -48,8 +48,8 @@ def index():
 
     run_judge.apply_async(
         (token, solution),
-        link=success_callback.s(solution, callback_url),
-        link_error=failure_callback.s(solution, callback_url)
+        link=success_callback.s(solution=solution, callback_url=callback_url),
+        link_error=failure_callback.s(solution=solution, callback_url=callback_url)
     )
 
     return jsonify('Success')

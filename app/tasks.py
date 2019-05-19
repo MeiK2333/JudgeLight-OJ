@@ -2,6 +2,7 @@ import requests
 
 from app import celery
 from app.judge import judge
+from celery.result import AsyncResult
 
 
 @celery.task
@@ -20,8 +21,10 @@ def success_callback(result, solution, callback_url: str):
 
 
 @celery.task
-def failure_callback(uuid, solution, callback_url: str):
+def failure_callback(task_id, **kwargs):
     """ 评测失败回调（System Error） """
+    solution = kwargs['solution']
+    callback_url = kwargs['callback_url']
     result = {
         'token': solution['token'],
         'run_id': solution['run_id'],
