@@ -12,7 +12,7 @@ def judge(token, solution):
     result = {
         'token': token,
         'run_id': solution['run_id'],
-        'result': '',
+        'result': 'AC',
         'compilation_info': '',
         'judgement_info': []
     }
@@ -32,6 +32,14 @@ def judge(token, solution):
         # 依次评测每组数据
         for data in datas['data']:
             item_info = judge_one(solution, data, datas['is_spj'])
+            result['judgement_info'].append(item_info)
+            if item_info['result'] != 'AC':
+                # 如果某组出错，且不为 OI 评测模式，则直接返回错误
+                if solution['oi'] != True:
+                    result['result'] = item_info['result']
+                    break
+                # 如果是 OI 模式，则评测完所有数据，状态为 PT
+                result['result'] = 'PT'
 
     # 删除评测目录
     shutil.rmtree(work_dir)
@@ -57,7 +65,7 @@ def judge_one(solution, data, is_spj):
         time_limit=time_limit,
         memory_limit=memory_limit,
         real_time_limit=time_limit * 2 + 5000,
-        output_size_limit=6553500,
+        output_size_limit=65535000,
         input_file_path='data.in',
         output_file_path='output.txt',
         error_file_path='error.txt',
@@ -68,13 +76,18 @@ def judge_one(solution, data, is_spj):
     result.update(stats)
     result['syscall'] = result.pop('re_syscall')
 
-    if stats['re_flag'] != 0:
-        result['result'] = 'RE'
+    # 判断该组状态
+    if stats['time_used'] > time_limit:
+        result['result'] = 'TLE'
+    elif stats['memory_used'] > memory_limit:
+        result['result'] = 'MLE'
+    elif stats['re_flag'] != 0:
+        result['result'] = 'RTE'
     else:
         # 对答案进行判断
         if is_spj:
             # TODO SPJ
-            pass
+            result['result'] = 'AC'
         else:
             result['result'] = std_check()
 
