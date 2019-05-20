@@ -8,7 +8,6 @@ from config import CONFIG
 
 def judge(token, solution):
     """ 评测一个提交 """
-    # TODO 完成评测逻辑
     result = {
         'token': token,
         'run_id': solution['run_id'],
@@ -50,7 +49,6 @@ def judge_one(solution, data, is_spj):
     """ 评测一组数据 """
     # 复制数据文件到评测目录
     shutil.copyfile(data['in'], 'data.in')
-    shutil.copyfile(data['out'], 'data.out')
 
     time_limit = solution['time_limit']
     memory_limit = solution['memory_limit']
@@ -75,6 +73,7 @@ def judge_one(solution, data, is_spj):
 
     result.update(stats)
     result['syscall'] = result.pop('re_syscall')
+    shutil.copyfile(data['out'], 'data.out')
 
     # 判断该组状态
     if stats['time_used'] > time_limit:
@@ -86,8 +85,7 @@ def judge_one(solution, data, is_spj):
     else:
         # 对答案进行判断
         if is_spj:
-            # TODO SPJ
-            result['result'] = 'AC'
+            result['result'] = spj_check()
         else:
             result['result'] = std_check()
 
@@ -96,6 +94,39 @@ def judge_one(solution, data, is_spj):
     os.remove('data.out')
 
     return result
+
+
+def spj_check():
+    """ 评测 Special Judge 的答案 """
+    """
+    对 SPJ 的题目，采用类似 testlib 的规范，即：SPJ 程序必须接收三个命令行参数
+    `./spj.exe <input-file> <output-file> <answer-file>`
+    规定 SPJ 程序必须命名为 `spj.exe`，如果有这个文件即为 SPJ 评测，否则为标准评测
+    """
+    cmd = 'spj.exe data.in output.txt data.out'.split()
+    os.chmod('spj.exe', 500)
+    jl = JudgeLight(
+        cmd[0], cmd,
+        output_file_path='spj_stdout.txt',
+        error_file_path='spj_stderr.txt',
+        output_size_limit=655350,
+        time_limit=5000,
+        real_time_limit=10000,
+        trace=False,
+    )
+    stats = jl.run()
+
+    code = stats['signum']
+    if stats['re_flag'] != 0:
+        return 'SE'
+
+    if code == 0:
+        return 'AC'
+    elif code == 1:
+        return 'WA'
+    elif code == 2:
+        return 'PE'
+    return 'SE'
 
 
 def std_check():
@@ -132,6 +163,9 @@ def get_all_data(solution):
         else:
             break
         i += 1
+    # 如果为 SPJ 题目，则复制 SPJ 程序
+    if datas['is_spj']:
+        shutil.copyfile(os.path.join(data_dir, 'spj.exe'), 'spj.exe')
     return datas
 
 
