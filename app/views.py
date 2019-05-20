@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 
 from app.tasks import failure_callback, run_judge, success_callback
 from config import CONFIG
+import json
 
 views = Blueprint('views', __name__)
 
@@ -49,7 +50,15 @@ def index():
     run_judge.apply_async(
         (token, solution),
         link=success_callback.s(solution=solution, callback_url=callback_url),
-        link_error=failure_callback.s(solution=solution, callback_url=callback_url)
+        link_error=failure_callback.s(
+            solution=solution, callback_url=callback_url)
     )
 
     return jsonify('Success')
+
+
+@views.route('/callback', methods=['POST'])
+def callback():
+    json_data = request.get_json()
+    print(json.dumps(json_data, indent=4, ensure_ascii=False))
+    return jsonify(json_data)

@@ -100,8 +100,18 @@ def judge_one(solution, data, is_spj):
 
 def std_check():
     """ 标准检查 """
-    # TODO
-    return 'AC'
+    with open('data.out') as fr:
+        data = fr.read().strip()
+    with open('output.txt') as fr:
+        output = fr.read().strip()
+
+    # 忽略数据前后空白符号对答案进行对比，性能堪忧
+    # 下一版用 C 之类的重写这部分
+    if data == output:
+        return 'AC'
+    if ''.join(data.split()) == ''.join(output.split()):
+        return 'PE'
+    return 'WA'
 
 
 def get_all_data(solution):
@@ -128,7 +138,7 @@ def get_all_data(solution):
 def compile_it(solution):
     """ 编译指定提交 """
     result = {
-        'result': '',
+        'result': 'AC',
         'compilation_info': '',
     }
     language = solution['language']
