@@ -1,0 +1,41 @@
+version: '2.0'
+services:
+    rabbitmq:
+        image: 'rabbitmq'
+        ports:
+            - 5672:5672
+        environment:
+            RABBITMQ_DEFAULT_HOST:
+            RABBITMQ_DEFAULT_USER: 
+            RABBITMQ_DEFAULT_PASS:
+
+    webserver:
+        build: .
+        depends_on:
+            - rabbitmq
+        environment:
+            token:
+            RABBITMQ_DEFAULT_HOST:
+            RABBITMQ_DEFAULT_USER:
+            RABBITMQ_DEFAULT_PASS:
+        volumes:
+            - ./data:/judge/data
+        ports:
+            - "8080:8080"
+        command: gunicorn run:app -b 0.0.0.0:8080
+
+    worker:
+        build: .
+        environment:
+            data_folder: /judge/data
+            workdir: /judge/work
+            token:
+            RABBITMQ_DEFAULT_HOST:
+            RABBITMQ_DEFAULT_USER:
+            RABBITMQ_DEFAULT_PASS:
+        volumes:
+            - ./data:/judge/data
+            - ./work:/judge/work
+        cap_add:
+            - SYS_PTRACE
+        command: celery -A app.tasks worker --loglevel=info
