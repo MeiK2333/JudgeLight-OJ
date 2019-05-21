@@ -17,6 +17,16 @@ CONFIG['language'] = {
         'compile': '/usr/bin/gcc main.c -o a.out -O2',
         'run': 'a.out',
     },
+    'g++': {
+        'filename': 'main.cpp',
+        'compile': '/usr/bin/g++ main.cpp -o a.out -O2',
+        'run': 'a.out',
+    },
+    'python': {
+        'filename': 'main.py',
+        'compile': '/bin/echo python',
+        'run': '/usr/local/bin/python main.py',
+    }
 }
 
 CONFIG['data_folder'] = os.environ.get('data_folder', os.path.abspath('data'))
