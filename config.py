@@ -26,7 +26,12 @@ CONFIG['language'] = {
         'filename': 'main.py',
         'compile': '/bin/echo python',
         'run': '/usr/local/bin/python main.py',
-    }
+    },
+    'java': {
+        'filename': 'Main.java',
+        'compile': '/usr/bin/java Main.java',
+        'run': '/usr/bin/java Main',
+    },
 }
 
 CONFIG['data_folder'] = os.environ.get('data_folder', os.path.abspath('data'))
