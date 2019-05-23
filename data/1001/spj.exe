@@ -7,7 +7,7 @@ with open('output.txt') as fr:
 with open('data.out') as fr:
     data = fr.read()
 
-if output_data.lower() == data.lower():
+if output_data.lower().strip() == data.lower().strip():
     sys.exit(0)
 else:
     sys.exit(1)
