@@ -1,4 +1,4 @@
-JudgeLight==2.0.7
+JudgeLight==2.0.6
 celery
 flask
 gunicorn
